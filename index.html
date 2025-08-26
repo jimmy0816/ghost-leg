@@ -432,6 +432,7 @@
         let COLUMN_SPACING = 100; // 欄位間距（會動態調整）
         const LADDER_HEIGHT = 400;  // 梯子高度
         const LEVELS = 10;          // 分層數量
+        let resultMapping = []; // 儲存參與者到結果的固定映射
 
         function parseInput() {
             const participantText = document.getElementById('participants').value.trim();
@@ -448,6 +449,18 @@
                 participants.push('參與者' + (participants.length + 1));
             }
         }
+        
+        function calculateResultMapping() {
+            resultMapping = [];
+            // 為每個參與者隨機分配一個結果位置
+            const availableResults = [...Array(participants.length).keys()];
+            
+            for (let i = 0; i < participants.length; i++) {
+                const randomIndex = Math.floor(Math.random() * availableResults.length);
+                resultMapping.push(availableResults[randomIndex]);
+                availableResults.splice(randomIndex, 1);
+            }
+        }
 
         function generateAmida() {
             parseInput();
@@ -459,6 +472,11 @@
 
             const container = document.getElementById('amidaContainer');
             container.innerHTML = '';
+            
+            // 如果是第一次生成或參與者數量改變，重新計算結果映射
+            if (resultMapping.length !== participants.length) {
+                calculateResultMapping();
+            }
             
             // 動態計算欄位間距，確保所有欄位都能顯示
             const containerWidth = container.offsetWidth - 80; // 減去padding
@@ -492,7 +510,7 @@
                 // 結果標籤
                 const resultLabel = document.createElement('div');
                 resultLabel.className = 'result-label';
-                resultLabel.textContent = results[i];
+                resultLabel.textContent = results[resultMapping[i]];
                 line.appendChild(resultLabel);
                 
                 // 兔子
@@ -578,7 +596,7 @@
                 if (pathIndex >= path.length) {
                     // 路徑完成，顯示結果
                     setTimeout(() => {
-                        showResult(participants[startCol], results[currentCol]);
+                        showResult(participants[startCol], results[resultMapping[currentCol]]);
                         bunny.classList.remove('hopping');
                         isAnimating = false;
                     }, 500);
