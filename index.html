@@ -496,59 +496,63 @@
             bunny.style.top = '-30px';
             bunny.style.transform = 'translateX(-50%)';
             
-            function moveToNextLevel(level) {
-                if (level > LEVELS) {
-                    // 到達底部，移動到最終結果位置
+            // 計算完整路徑
+            const path = calculatePath(startCol);
+            
+            function moveAlongPath(pathIndex) {
+                if (pathIndex >= path.length) {
+                    // 路徑完成，顯示結果
                     setTimeout(() => {
-                        const finalY = LADDER_HEIGHT + 10;
-                        bunny.style.top = finalY + 'px';
-                        bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
-                        
-                        setTimeout(() => {
-                            showResult(participants[startCol], results[currentCol]);
-                            bunny.classList.remove('hopping');
-                            isAnimating = false;
-                        }, 800);
-                    }, 600);
+                        showResult(participants[startCol], results[currentCol]);
+                        bunny.classList.remove('hopping');
+                        isAnimating = false;
+                    }, 500);
                     return;
                 }
                 
+                const nextPoint = path[pathIndex];
                 setTimeout(() => {
-                    // 先垂直移動到當前層級
-                    const currentY = -30 + (level / LEVELS) * LADDER_HEIGHT;
-                    bunny.style.top = currentY + 'px';
-                    bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
+                    bunny.style.top = nextPoint.y + 'px';
+                    bunny.style.left = (nextPoint.col * COLUMN_SPACING + 50) + 'px';
+                    currentCol = nextPoint.col;
                     
-                    // 檢查這個層級是否有橫桿
-                    const foundBar = horizontalBars.find(bar => 
-                        bar.level === level && (bar.fromCol === currentCol || bar.toCol === currentCol)
-                    );
-                    
-                    if (foundBar) {
-                        // 有橫桿，先等一下再水平移動
-                        setTimeout(() => {
-                            // 決定移動到哪一欄
-                            const newCol = foundBar.fromCol === currentCol ? foundBar.toCol : foundBar.fromCol;
-                            currentCol = newCol;
-                            
-                            // 水平移動到新欄位
-                            bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
-                            
-                            // 移動完成後繼續下一層
-                            setTimeout(() => {
-                                moveToNextLevel(level + 1);
-                            }, 800);
-                        }, 600);
-                    } else {
-                        // 沒有橫桿，直接繼續下一層
-                        setTimeout(() => {
-                            moveToNextLevel(level + 1);
-                        }, 700);
-                    }
-                }, 500);
+                    moveAlongPath(pathIndex + 1);
+                }, 800);
             }
             
-            moveToNextLevel(1);
+            moveAlongPath(0);
+        }
+        
+        function calculatePath(startCol) {
+            const path = [];
+            let currentCol = startCol;
+            
+            // 添加起始點
+            path.push({ col: startCol, y: -30 });
+            
+            // 逐層計算路徑
+            for (let level = 1; level <= LEVELS; level++) {
+                const y = -30 + (level / LEVELS) * LADDER_HEIGHT;
+                
+                // 檢查當前層級是否有橫桿
+                const foundBar = horizontalBars.find(bar => 
+                    bar.level === level && (bar.fromCol === currentCol || bar.toCol === currentCol)
+                );
+                
+                if (foundBar) {
+                    // 有橫桿，移動到相鄰欄位
+                    const newCol = foundBar.fromCol === currentCol ? foundBar.toCol : foundBar.fromCol;
+                    currentCol = newCol;
+                }
+                
+                // 添加當前層級的點
+                path.push({ col: currentCol, y: y });
+            }
+            
+            // 添加最終結果點
+            path.push({ col: currentCol, y: LADDER_HEIGHT + 10 });
+            
+            return path;
         }
 
         function showResult(participant, result) {
