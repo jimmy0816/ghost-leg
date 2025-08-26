@@ -223,6 +223,8 @@
             transition: all 0.8s ease-in-out;
             z-index: 100;
             cursor: pointer;
+            /* 確保兔子相對於遊戲容器定位 */
+            position: absolute;
         }
 
         /* 兔子耳朵 */
@@ -467,7 +469,11 @@
                     <div class="nose"></div>
                 `;
                 bunny.onclick = () => startJourney(i);
-                line.appendChild(bunny);
+                // 設置兔子的初始位置
+                bunny.style.left = (i * COLUMN_SPACING + 50) + 'px';
+                bunny.style.top = '-30px';
+                bunny.style.transform = 'translateX(-50%)';
+                grid.appendChild(bunny);
                 
                 grid.appendChild(line);
             }
@@ -519,11 +525,6 @@
             let currentCol = startCol;
             
             bunny.classList.add('hopping');
-            
-            // 設置起始位置
-            bunny.style.left = (startCol * COLUMN_SPACING + 50) + 'px';
-            bunny.style.top = '-30px';
-            bunny.style.transform = 'translateX(-50%)';
             
             // 計算完整路徑
             const path = calculatePath(startCol);
