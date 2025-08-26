@@ -144,8 +144,30 @@
             border-radius: 15px;
             padding: 60px 40px 80px 40px;
             margin: 20px 0;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             min-height: 600px;
+            /* 美化滾動條 */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        /* Webkit瀏覽器的滾動條樣式 */
+        .amida-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .amida-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .amida-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        .amida-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .amida-grid {
@@ -392,6 +414,9 @@
         <div class="amida-container" id="amidaContainer">
             <!-- 爬梯子遊戲會在這裡生成 -->
         </div>
+        <div id="scrollHint" style="text-align: center; margin-top: 10px; color: #666; font-size: 14px; display: none;">
+            💡 提示：可以左右滾動查看所有選項
+        </div>
 
         <div class="result-display" id="resultDisplay">
             <h2>🎉 抽籤結果</h2>
@@ -435,14 +460,21 @@
             const container = document.getElementById('amidaContainer');
             container.innerHTML = '';
             
-            // 動態計算欄位間距，確保梯子寬度不超過容器
+            // 動態計算欄位間距，確保所有欄位都能顯示
             const containerWidth = container.offsetWidth - 80; // 減去padding
-            const maxSpacing = Math.min(120, Math.floor(containerWidth / participants.length));
-            COLUMN_SPACING = Math.max(80, maxSpacing); // 最小間距80px
+            const minSpacing = 80; // 最小間距
+            const maxSpacing = 120; // 最大間距
+            
+            // 計算理想的欄位間距
+            let idealSpacing = Math.floor(containerWidth / participants.length);
+            COLUMN_SPACING = Math.max(minSpacing, Math.min(maxSpacing, idealSpacing));
+            
+            // 計算梯子總寬度，確保包含最後一欄的完整寬度
+            const totalWidth = (participants.length - 1) * COLUMN_SPACING + 100;
             
             const grid = document.createElement('div');
             grid.className = 'amida-grid';
-            grid.style.width = (participants.length - 1) * COLUMN_SPACING + 100 + 'px';
+            grid.style.width = totalWidth + 'px';
             
             // 建立垂直線條和兔子
             for (let i = 0; i < participants.length; i++) {
@@ -488,6 +520,14 @@
             
             container.appendChild(grid);
             document.getElementById('resultDisplay').classList.remove('show');
+            
+            // 如果梯子寬度超過容器，顯示滾動提示
+            const scrollHint = document.getElementById('scrollHint');
+            if (totalWidth > containerWidth) {
+                scrollHint.style.display = 'block';
+            } else {
+                scrollHint.style.display = 'none';
+            }
         }
 
         function generateHorizontalBars(grid) {
