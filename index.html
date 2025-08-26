@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿彌陀籤 - 兔子抽籤遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2C3E50;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            width: 90vw;
+            max-width: 1200px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2C3E50;
+        }
+
+        .input-group textarea {
+            width: 200px;
+            height: 100px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FF6B9D, #FF8E53);
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        /* 阿彌陀籤主體 */
+        .amida-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 60px 40px;
+            margin: 20px 0;
+            overflow-x: auto;
+            min-height: 500px;
+        }
+
+        .amida-grid {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            min-width: fit-content;
+        }
+
+        /* 垂直線條 */
+        .vertical-line {
+            position: relative;
+            width: 4px;
+            height: 400px;
+            background: linear-gradient(to bottom, #8B4513, #D2691E);
+            border-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 參與者名稱 */
+        .participant-name {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* 結果標籤 */
+        .result-label {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #FF8A80, #FF5722);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* 橫桿 */
+        .horizontal-bar {
+            position: absolute;
+            height: 6px;
+            background: linear-gradient(90deg, #8B4513, #D2691E);
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        /* 兔子 */
+        .bunny {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #FFB6C1, #FFC0CB);
+            border: 3px solid #FF69B4;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 100;
+            cursor: pointer;
+        }
+
+        /* 兔子耳朵 */
+        .bunny::before,
+        .bunny::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 25px;
+            background: linear-gradient(45deg, #FFB6C1, #FFC0CB);
+            border: 2px solid #FF69B4;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: -20px;
+        }
+
+        .bunny::before {
+            left: 10px;
+            transform: rotate(-15deg);
+        }
+
+        .bunny::after {
+            right: 10px;
+            transform: rotate(15deg);
+        }
+
+        /* 兔子五官 */
+        .bunny-face {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+        }
+
+        .eye {
+            width: 6px;
+            height: 6px;
+            background: #2C3E50;
+            border-radius: 50%;
+            animation: blink 3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        .nose {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #FF1493;
+            border-radius: 50%;
+        }
+
+        .bunny.hopping {
+            animation: hop 1.2s ease-in-out infinite;
+        }
+
+        @keyframes hop {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+            25% { transform: translateX(-50%) translateY(-15px) rotate(-3deg); }
+            50% { transform: translateX(-50%) translateY(-25px) rotate(0deg); }
+            75% { transform: translateX(-50%) translateY(-15px) rotate(3deg); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+        }
+
+        /* 結果顯示 */
+        .result-display {
+            text-align: center;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            display: none;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .result-display.show {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: celebrate 2s ease-in-out;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes celebrate {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2em; }
+            .input-group textarea { width: 180px; height: 80px; }
+            .participant-name, .result-label { font-size: 12px; padding: 6px 12px; }
+            .amida-container { padding: 40px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">🐰 阿彌陀籤 - 兔子抽籤 🎯</h1>
+    
+    <div class="game-container">
+        <div class="instructions">
+            <strong>🎮 遊戲說明：</strong> 輸入參與者姓名和對應結果，系統會自動生成隨機橫桿。點選任一兔子，看牠會沿著路徑走到哪個結果！
+            適用於：決定誰買飲料、抽獎品分配、分組、罰遊戲等隨機分配。
+        </div>
+
+        <div class="controls">
+            <div class="input-section">
+                <div class="input-group">
+                    <label>👥 參與者姓名 (每行一個)</label>
+                    <textarea id="participants" placeholder="小明&#10;小華&#10;小美&#10;小強">小明
+小華
+小美
+小強</textarea>
+                </div>
+                <div class="input-group">
+                    <label>🎁 對應結果 (每行一個)</label>
+                    <textarea id="results" placeholder="買咖啡☕&#10;買手搖🧋&#10;請吃飯🍽️&#10;免費過關🎉">買咖啡☕
+買手搖🧋
+請吃飯🍽️
+免費過關🎉</textarea>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="generateAmida()">🎲 生成新的阿彌陀籤</button>
+            <button class="btn" onclick="resetGame()">🔄 重置遊戲</button>
+        </div>
+        
+        <div class="amida-container" id="amidaContainer">
+            <!-- 阿彌陀籤會在這裡生成 -->
+        </div>
+
+        <div class="result-display" id="resultDisplay">
+            <h2>🎉 抽籤結果</h2>
+            <div id="resultText"></div>
+        </div>
+    </div>
+
+    <script>
+        let participants = [];
+        let results = [];
+        let horizontalBars = [];
+        let isAnimating = false;
+        const COLUMN_SPACING = 100; // 欄位間距
+        const LADDER_HEIGHT = 400;  // 梯子高度
+        const LEVELS = 10;          // 分層數量
+
+        function parseInput() {
+            const participantText = document.getElementById('participants').value.trim();
+            const resultText = document.getElementById('results').value.trim();
+            
+            participants = participantText.split('\n').map(p => p.trim()).filter(p => p);
+            results = resultText.split('\n').map(r => r.trim()).filter(r => r);
+            
+            // 確保數量一致
+            while (results.length < participants.length) {
+                results.push('神秘獎品🎁');
+            }
+            while (participants.length < results.length) {
+                participants.push('參與者' + (participants.length + 1));
+            }
+        }
+
+        function generateAmida() {
+            parseInput();
+            
+            if (participants.length < 2) {
+                alert('請至少輸入2個參與者！');
+                return;
+            }
+
+            const container = document.getElementById('amidaContainer');
+            container.innerHTML = '';
+            
+            const grid = document.createElement('div');
+            grid.className = 'amida-grid';
+            grid.style.width = (participants.length - 1) * COLUMN_SPACING + 100 + 'px';
+            
+            // 建立垂直線條和兔子
+            for (let i = 0; i < participants.length; i++) {
+                const line = document.createElement('div');
+                line.className = 'vertical-line';
+                line.style.position = 'absolute';
+                line.style.left = (i * COLUMN_SPACING + 50) + 'px';
+                
+                // 參與者名稱
+                const nameLabel = document.createElement('div');
+                nameLabel.className = 'participant-name';
+                nameLabel.textContent = participants[i];
+                line.appendChild(nameLabel);
+                
+                // 結果標籤
+                const resultLabel = document.createElement('div');
+                resultLabel.className = 'result-label';
+                resultLabel.textContent = results[i];
+                line.appendChild(resultLabel);
+                
+                // 兔子
+                const bunny = document.createElement('div');
+                bunny.className = 'bunny';
+                bunny.innerHTML = `
+                    <div class="bunny-face">
+                        <div class="eye"></div>
+                        <div class="eye"></div>
+                    </div>
+                    <div class="nose"></div>
+                `;
+                bunny.onclick = () => startJourney(i);
+                line.appendChild(bunny);
+                
+                grid.appendChild(line);
+            }
+            
+            // 生成隨機橫桿
+            generateHorizontalBars(grid);
+            
+            container.appendChild(grid);
+            document.getElementById('resultDisplay').classList.remove('show');
+        }
+
+        function generateHorizontalBars(grid) {
+            horizontalBars = [];
+            
+            for (let level = 1; level < LEVELS; level++) {
+                const y = (level / LEVELS) * LADDER_HEIGHT;
+                const usedColumns = new Set();
+                
+                for (let col = 0; col < participants.length - 1; col++) {
+                    // 35%機率生成橫桿，且確保不衝突
+                    if (Math.random() < 0.35 && !usedColumns.has(col) && !usedColumns.has(col + 1)) {
+                        const bar = document.createElement('div');
+                        bar.className = 'horizontal-bar';
+                        bar.style.left = (col * COLUMN_SPACING + 54) + 'px';
+                        bar.style.top = y + 'px';
+                        bar.style.width = COLUMN_SPACING - 8 + 'px';
+                        
+                        grid.appendChild(bar);
+                        
+                        horizontalBars.push({
+                            level: level,
+                            fromCol: col,
+                            toCol: col + 1,
+                            y: y
+                        });
+                        
+                        usedColumns.add(col);
+                        usedColumns.add(col + 1);
+                    }
+                }
+            }
+        }
+
+        function startJourney(startCol) {
+            if (isAnimating) return;
+            
+            isAnimating = true;
+            const bunny = document.querySelectorAll('.bunny')[startCol];
+            let currentCol = startCol;
+            
+            bunny.classList.add('hopping');
+            
+            // 設置起始位置
+            bunny.style.left = (startCol * COLUMN_SPACING + 50) + 'px';
+            bunny.style.top = '-30px';
+            bunny.style.transform = 'translateX(-50%)';
+            
+            function moveToNextLevel(level) {
+                if (level > LEVELS) {
+                    // 到達底部，移動到最終結果位置
+                    setTimeout(() => {
+                        const finalY = LADDER_HEIGHT + 10;
+                        bunny.style.top = finalY + 'px';
+                        bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
+                        
+                        setTimeout(() => {
+                            showResult(participants[startCol], results[currentCol]);
+                            bunny.classList.remove('hopping');
+                            isAnimating = false;
+                        }, 800);
+                    }, 600);
+                    return;
+                }
+                
+                setTimeout(() => {
+                    // 先垂直移動到當前層級
+                    const currentY = -30 + (level / LEVELS) * LADDER_HEIGHT;
+                    bunny.style.top = currentY + 'px';
+                    bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
+                    
+                    // 檢查這個層級是否有橫桿
+                    const foundBar = horizontalBars.find(bar => 
+                        bar.level === level && (bar.fromCol === currentCol || bar.toCol === currentCol)
+                    );
+                    
+                    if (foundBar) {
+                        // 有橫桿，先等一下再水平移動
+                        setTimeout(() => {
+                            // 決定移動到哪一欄
+                            const newCol = foundBar.fromCol === currentCol ? foundBar.toCol : foundBar.fromCol;
+                            currentCol = newCol;
+                            
+                            // 水平移動到新欄位
+                            bunny.style.left = (currentCol * COLUMN_SPACING + 50) + 'px';
+                            
+                            // 移動完成後繼續下一層
+                            setTimeout(() => {
+                                moveToNextLevel(level + 1);
+                            }, 800);
+                        }, 600);
+                    } else {
+                        // 沒有橫桿，直接繼續下一層
+                        setTimeout(() => {
+                            moveToNextLevel(level + 1);
+                        }, 700);
+                    }
+                }, 500);
+            }
+            
+            moveToNextLevel(1);
+        }
+
+        function showResult(participant, result) {
+            const resultDisplay = document.getElementById('resultDisplay');
+            const resultText = document.getElementById('resultText');
+            
+            resultText.innerHTML = `
+                <h3 style="color: #FF6B9D; margin-bottom: 15px;">
+                    🐰 ${participant} 的抽籤結果：
+                </h3>
+                <div style="font-size: 1.8em; font-weight: bold; color: #2C3E50; background: linear-gradient(45deg, #FFE082, #FFCC02); padding: 20px; border-radius: 15px; display: inline-block; box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                    ${result}
+                </div>
+            `;
+            
+            resultDisplay.classList.add('show');
+            
+            // 慶祝動畫
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.innerHTML = '🎉✨🎊';
+            document.body.appendChild(celebration);
+            
+            setTimeout(() => celebration.remove(), 2000);
+        }
+
+        function resetGame() {
+            isAnimating = false;
+            document.getElementById('resultDisplay').classList.remove('show');
+            
+            document.querySelectorAll('.bunny').forEach((bunny, index) => {
+                bunny.style.top = '-30px';
+                bunny.style.left = (index * COLUMN_SPACING + 50) + 'px';
+                bunny.style.transform = 'translateX(-50%)';
+                bunny.classList.remove('hopping');
+            });
+        }
+
+        // 初始化
+        generateAmida();
+
+        // 鍵盤控制
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'KeyG') generateAmida();
+            else if (event.code === 'KeyR') resetGame();
+        });
+    </script>
+</body>
+</html>
