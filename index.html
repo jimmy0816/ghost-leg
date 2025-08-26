@@ -142,10 +142,10 @@
         .amida-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 60px 40px;
+            padding: 60px 40px 80px 40px;
             margin: 20px 0;
             overflow: hidden;
-            min-height: 500px;
+            min-height: 600px;
         }
 
         .amida-grid {
@@ -185,7 +185,7 @@
         /* 結果標籤 */
         .result-label {
             position: absolute;
-            bottom: -50px;
+            bottom: -60px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(45deg, #FF8A80, #FF5722);
@@ -220,7 +220,7 @@
             top: -30px;
             left: 0;
             transform: translateX(-50%);
-            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: all 0.8s ease-in-out;
             z-index: 100;
             cursor: pointer;
         }
@@ -541,7 +541,7 @@
                 
                 const nextPoint = path[pathIndex];
                 setTimeout(() => {
-                    // 確保兔子在正確的位置
+                    // 精確定位兔子在梯子線條上
                     const leftPosition = (nextPoint.col * COLUMN_SPACING + 50);
                     bunny.style.left = leftPosition + 'px';
                     bunny.style.top = nextPoint.y + 'px';
@@ -549,7 +549,7 @@
                     currentCol = nextPoint.col;
                     
                     moveAlongPath(pathIndex + 1);
-                }, 800);
+                }, 600);
             }
             
             moveAlongPath(0);
@@ -562,7 +562,7 @@
             // 添加起始點
             path.push({ col: startCol, y: -30 });
             
-            // 逐層計算路徑
+            // 逐層計算路徑，確保沿著梯子線條
             for (let level = 1; level <= LEVELS; level++) {
                 const y = -30 + (level / LEVELS) * LADDER_HEIGHT;
                 
@@ -572,13 +572,17 @@
                 );
                 
                 if (foundBar) {
-                    // 有橫桿，移動到相鄰欄位
+                    // 有橫桿，先移動到橫桿位置，再水平移動
+                    path.push({ col: currentCol, y: y });
+                    
+                    // 水平移動到相鄰欄位
                     const newCol = foundBar.fromCol === currentCol ? foundBar.toCol : foundBar.fromCol;
                     currentCol = newCol;
+                    path.push({ col: currentCol, y: y });
+                } else {
+                    // 沒有橫桿，直接垂直移動
+                    path.push({ col: currentCol, y: y });
                 }
-                
-                // 添加當前層級的點
-                path.push({ col: currentCol, y: y });
             }
             
             // 添加最終結果點
