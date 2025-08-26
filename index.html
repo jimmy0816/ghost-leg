@@ -220,7 +220,7 @@
             top: -30px;
             left: 0;
             transform: translateX(-50%);
-            transition: all 0.8s ease-in-out;
+            transition: all 0.4s ease-in-out;
             z-index: 100;
             cursor: pointer;
             /* 確保兔子相對於遊戲容器定位 */
@@ -404,7 +404,7 @@
         let results = [];
         let horizontalBars = [];
         let isAnimating = false;
-        const COLUMN_SPACING = 100; // 欄位間距
+        let COLUMN_SPACING = 100; // 欄位間距（會動態調整）
         const LADDER_HEIGHT = 400;  // 梯子高度
         const LEVELS = 10;          // 分層數量
 
@@ -434,6 +434,11 @@
 
             const container = document.getElementById('amidaContainer');
             container.innerHTML = '';
+            
+            // 動態計算欄位間距，確保梯子寬度不超過容器
+            const containerWidth = container.offsetWidth - 80; // 減去padding
+            const maxSpacing = Math.min(120, Math.floor(containerWidth / participants.length));
+            COLUMN_SPACING = Math.max(80, maxSpacing); // 最小間距80px
             
             const grid = document.createElement('div');
             grid.className = 'amida-grid';
@@ -550,7 +555,7 @@
                     currentCol = nextPoint.col;
                     
                     moveAlongPath(pathIndex + 1);
-                }, 600);
+                }, 300);
             }
             
             moveAlongPath(0);
